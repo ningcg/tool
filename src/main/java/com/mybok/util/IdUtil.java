@@ -54,6 +54,7 @@ public final class IdUtil {
     private static synchronized long nextId(long epochSecond) {
         if (epochSecond < lastEpoch) {
             // warning: clock is turn back:
+            System.out.println("clock is back: " + epochSecond + " from previous:" + lastEpoch);
             logger.warn("clock is back: " + epochSecond + " from previous:" + lastEpoch);
             epochSecond = lastEpoch;
         }
@@ -64,9 +65,11 @@ public final class IdUtil {
         offset++;
         long next = offset & MAX_NEXT;
         if (next == 0) {
+            System.out.println("maximum id reached in 1 second in epoch: " + epochSecond);
             logger.warn("maximum id reached in 1 second in epoch: " + epochSecond);
             return nextId(epochSecond + 1);
         }
+        System.out.println("epochSecond："+epochSecond);
         return generateId(epochSecond, next, SHARD_ID);
     }
 
@@ -82,14 +85,18 @@ public final class IdUtil {
         try {
             String hostname = InetAddress.getLocalHost().getHostName();
             Matcher matcher = PATTERN_HOSTNAME.matcher(hostname);
+            System.out.println(hostname);
             if (matcher.matches()) {
                 long n = Long.parseLong(matcher.group(1));
+                System.out.println("detect server id from host name "+hostname+": {"+n+"}.");
                 if (n >= 0 && n < 8) {
+                    System.out.println("detect server id from host name "+hostname+": {"+n+"}.");
                     logger.info("detect server id from host name {}: {}.", hostname, n);
                     return n;
                 }
             }
         } catch (UnknownHostException e) {
+            System.out.println("unable to get host name. set server id = 0.");
             logger.warn("unable to get host name. set server id = 0.");
         }
         return 0;
@@ -107,5 +114,12 @@ public final class IdUtil {
             return generateId(epoch, next, serverId);
         }
         throw new IllegalArgumentException("Invalid id: " + stringId);
+    }
+
+    public static void main(String[] args) {
+        int a = 8 << 2;
+        System.out.println(Integer.toBinaryString(a));
+        System.out.println(a);
+        //System.out.println(nextId());
     }
 }
